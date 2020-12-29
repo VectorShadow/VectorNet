@@ -1,5 +1,9 @@
 package vsdl.core;
 
+import static vsdl.core.VNConstants.*;
+
+import vsdl.api.DataTransferObject;
+import vsdl.cipher.RSA;
 import vsdl.except.TransmissionFailureException;
 
 import java.io.IOException;
@@ -31,6 +35,7 @@ public class SessionHost extends Thread {
             try {
                 socket = serverSocket.accept();
                 NetLink nl = new NetLink(linkID++, socket);
+                nl.send(new DataTransferObject(RSA.getSessionPublicKey(), OPCODE_LINK_HANDSHAKE_PUBLIC));
             } catch (IOException e) { //no need to kill the server here, log the error and continue
                 throw new TransmissionFailureException("Failed to accept connection: " + e.getMessage());
             }

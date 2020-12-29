@@ -28,7 +28,7 @@ public class DataTransferObject {
     public static byte[] pack(DataTransferObject dto) {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         ObjectOutput out;
-        byte[] b = new byte[]{};
+        byte[] b;
         try {
             out = new ObjectOutputStream(bos);
             out.writeObject(dto);
@@ -49,7 +49,7 @@ public class DataTransferObject {
     public static DataTransferObject unpack(byte[] streamData) throws ClassCastException, StreamCorruptedException {
         ByteArrayInputStream bis = new ByteArrayInputStream(streamData);
         ObjectInput objectInput = null;
-        DataTransferObject dto = null;
+        DataTransferObject dto;
         try {
             objectInput = new ObjectInputStream(bis);
             dto = (DataTransferObject)objectInput.readObject();

@@ -6,12 +6,10 @@ public class VNConstants {
 
 
     public static final short OPCODE_LINK = 0;
-    public static final short OPCODE_LINK_ACK = 0;
-    public static final short OPCODE_LINK_ERR = 1;
-
-    public static final short OPCODE_SESSION = 16;
-    public static final short OPCODE_SESSION_HANDSHAKE_1 = 16;
-    public static final short OPCODE_SESSION_HANDSHAKE_2 = 17;
+    public static final short OPCODE_LINK_HANDSHAKE_PUBLIC = 0;
+    public static final short OPCODE_LINK_HANDSHAKE_PRIVATE = 1;
+    public static final short OPCODE_LINK_HANDSHAKE_ACK = 2;
+    public static final short OPCODE_LINK_ERROR = 3;
 
     public static final short OPCODE_USER = 64;
 

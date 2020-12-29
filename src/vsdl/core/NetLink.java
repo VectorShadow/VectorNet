@@ -3,10 +3,14 @@ package vsdl.core;
 import static vsdl.core.VNConstants.*;
 
 import vsdl.api.DataTransferObject;
+import vsdl.api.NetSessionManager;
+import vsdl.cipher.ByteCipher;
 import vsdl.except.StreamSizeException;
 import vsdl.except.TransmissionFailureException;
 
 import java.io.IOException;
+import java.io.Serializable;
+import java.math.BigInteger;
 import java.net.Socket;
 import java.net.SocketException;
 
@@ -21,6 +25,8 @@ public class NetLink extends Thread {
 
     private final Socket SOCK;
 
+    private boolean encrypted = false;
+    private ByteCipher key = null;
     private boolean isOpen = true;
     private int transmissionCount = 0;
 
@@ -38,6 +44,8 @@ public class NetLink extends Thread {
     }
 
     void send(DataTransferObject dto) {
+        if (dto.getOpcode() > OPCODE_LINK_HANDSHAKE_ACK && !encrypted)
+            throw new IllegalStateException("RSA Handshake must be performed prior to all other transmission.");
         byte[] rawData = DataTransferObject.pack(dto);
         int packetCount = (rawData.length / MAX_PACKET_DATA) + 1;
         if (packetCount > MAX_TRANSMISSION_PACKETS)
@@ -53,16 +61,14 @@ public class NetLink extends Thread {
                     transmissionCount,
                     i == 0 ? rawData.length : packetData.length,
                     (byte)i,
-                    packetData
+                    encrypted ? key.encrypt(packetData) : packetData
             );
             System.arraycopy(VectorPacket.toStream(packets[i]), 0, streamData, i * PACKET_SIZE, PACKET_SIZE);
         }
-        //todo - dto memory?
         try {
             SOCK.getOutputStream().write(streamData);
         } catch (SocketException se) {
-            throw new IllegalStateException("TODO - handle socket exceptions!");
-            //DATA_HANDLER.connectionLost(this);
+            NetSessionManager.getTransmissionHandler().handleDisconnection();
         } catch (IOException ioe) {
             throw new TransmissionFailureException("Unexpected IOException on data transmission: " + ioe.getMessage());
         }
@@ -90,14 +96,14 @@ public class NetLink extends Thread {
                     //verify that the sender id of the header matches our partner:
                     if (idPartner >= 0 && vectorPacket.getSenderID() != idPartner) {
                         streamCorrupted = true;
-                        break;
+                        continue;
                     }
                     //first packet in a transmission:
                     if (vectorPacket.getSequenceID() == 0) {
                         //if we are expecting more packets in the current transmission:
                         if (packetsReceived < packetsExpected) {
                             streamCorrupted = true;
-                            break;
+                            continue;
                         }
                         //otherwise initialize a new transmission:
                         transmission = new VectorPacket[packetsExpected];
@@ -107,7 +113,7 @@ public class NetLink extends Thread {
                     } else if (vectorPacket.getXmitID() != transmissionIndex || //packet is from wrong transmission
                             vectorPacket.getSequenceID() + 1 != packetsReceived) { //packet is out of order
                         streamCorrupted = true;
-                        break;
+                        continue;
                     }
                     transmission[vectorPacket.getSequenceID()] = vectorPacket; //log this packet
                     //complete transmission received
@@ -117,13 +123,12 @@ public class NetLink extends Thread {
                             System.arraycopy(
                                     transmission[i].getData(),
                                     0,
-                                    dtoStream,
+                                    encrypted ? key.decrypt(dtoStream) : dtoStream,
                                     i * MAX_PACKET_DATA,
                                     i == packetsExpected - 1 ? vectorPacket.getPacketSize() : MAX_PACKET_DATA
                             );
                         }
-                        DataTransferObject dto = DataTransferObject.unpack(dtoStream);
-                        //todo - handle the dto
+                        handle(DataTransferObject.unpack(dtoStream));
                     }
                 } else {
                     throw new TransmissionFailureException("Socket stream was corrupted and is not yet handled.");
@@ -132,13 +137,41 @@ public class NetLink extends Thread {
                     // idPartner, then start the stream from there, and set streamCorrupted to false
                 }
             } catch (SocketException se) {
-                throw new IllegalStateException("TODO - handle socket exceptions!");
-                //DATA_HANDLER.connectionLost(this);
+                NetSessionManager.getTransmissionHandler().handleDisconnection();
             } catch (IOException | InterruptedException e) {
                 throw new TransmissionFailureException("Unexpected Exception on data reception - "
                         + e.getClass() + ": " + e.getMessage());
             }
         } while (isOpen);
+    }
+
+    private void handle(DataTransferObject dto) {
+        int opcode = dto.getOpcode();
+        Serializable data = dto.getData();
+        if (opcode < OPCODE_USER) {
+            switch (opcode) {
+                case OPCODE_LINK_HANDSHAKE_PUBLIC:
+                    key = ByteCipher.generate();
+                    send(new DataTransferObject(ByteCipher.encryptRSA(key, (BigInteger)data), OPCODE_LINK_HANDSHAKE_PRIVATE));
+                    break;
+                case OPCODE_LINK_HANDSHAKE_PRIVATE:
+                    key = ByteCipher.decryptRSA((BigInteger)data);
+                    send(new DataTransferObject(ID_SELF, OPCODE_LINK_HANDSHAKE_ACK));
+                    encrypted = true;
+                    break;
+                case OPCODE_LINK_HANDSHAKE_ACK:
+                    encrypted = true;
+                    idPartner = (int)data;
+                    break;
+                case OPCODE_LINK_ERROR:
+                    NetSessionManager.getTransmissionHandler().handleTransmissionError();
+                    break;
+                default:
+                    throw new TransmissionFailureException("Unexpected opcode " + opcode);
+            }
+        } else {
+            NetSessionManager.getTransmissionHandler().handleTransmission(opcode, data);
+        }
     }
 
 }
