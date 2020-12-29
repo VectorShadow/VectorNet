@@ -8,7 +8,7 @@ import java.util.Random;
 
 public class CipherTest {
 
-    private static final int VOLUME = 128;
+    private static final int VOLUME = 64;
     private static final Random RANDOM = new Random();
 
     @Test
@@ -54,7 +54,7 @@ public class CipherTest {
     public void testRSAEncryptDecrypt() {
         byte[] testData = new byte[256];
         BigInteger testInteger;
-        for (int i = 0; i < VOLUME / 4; ++i) {
+        for (int i = 0; i < VOLUME; ++i) {
             RANDOM.nextBytes(testData);
             testInteger = new BigInteger(HexCipher.convertToHexString(testData), 16);
             assert testInteger.equals(RSA.decrypt(RSA.encrypt(testInteger, RSA.getSessionPublicKey())));

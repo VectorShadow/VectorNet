@@ -8,6 +8,8 @@ public class ByteUtil {
     private static final int MASK3 = 0x0000_00ff;
 
     public static byte[] to2(int i) {
+        if (i < 0 || i > 0xffff)
+            throw new IllegalArgumentException("Int " + i + " out of bounds(0 -> 65,535");
         byte[] out = new byte[2];
         out[0] = (byte)((i & MASK2) >> 8);
         out[1] = (byte)(i & MASK3);
@@ -15,6 +17,8 @@ public class ByteUtil {
     }
 
     public static byte[] to3(int i) {
+        if (i < 0 || i > 0xff_ffff)
+            throw new IllegalArgumentException("Int " + i + " out of bounds(0 -> 16,777,215");
         byte[] out = new byte[3];
         out[0] = (byte)((i & MASK1) >> 16);
         out[1] = (byte)((i & MASK2) >> 8);
@@ -23,6 +27,8 @@ public class ByteUtil {
     }
 
     public static byte[] to4(int i) {
+        if (i < 0)
+            throw new IllegalArgumentException("Int " + i + " out of bounds(0 -> 2,147,483,647");
         byte[] out = new byte[4];
         out[0] = (byte)((i & MASK0) >> 24);
         out[1] = (byte)((i & MASK1) >> 16);
@@ -36,6 +42,14 @@ public class ByteUtil {
      * byte array.
      */
     public static int toInt(byte[] bytes, int offset, int size) {
+        if (offset < 0 || offset >= bytes.length)
+            throw new IllegalArgumentException("Offset " + offset + " must be in bounds of bytes: 0 -> "
+                    + bytes.length);
+        if (size <= 0)
+            throw new IllegalArgumentException("Size must be greater than 0!");
+        if (offset + size > bytes.length)
+            throw new IllegalArgumentException("Size " + size + " + offset " + offset
+                    + " must be less than or equal to the number of bytes: " + bytes.length);
         int value = 0;
         for (int counter = size; counter > 0; --counter) {
             byte b = bytes[offset + (size - counter)];
