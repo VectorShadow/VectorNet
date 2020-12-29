@@ -88,7 +88,7 @@ public class TestByteUtil {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testToIntNegativeOffsetSizeError() {
+    public void testToIntOffsetPlusSizeError() {
         byte[] testBytes = new byte[16];
         RANDOM.nextBytes(testBytes);
         toInt(testBytes, 12, 6);
