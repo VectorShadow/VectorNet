@@ -9,7 +9,8 @@ public class NetSessionManager {
     public static final int MODE_STANDBY = -1;
     public static final int MODE_MASTER_SERVER = 0;
     public static final int MODE_CLIENT_HOST = 1;
-    public static final int MODE_CLIENT_GUEST = 1;
+    public static final int MODE_CLIENT_GUEST = 2;
+    public static final int MODE_CLIENT_PRIVATE = 3;
 
     private static NetSessionManager instance = null;
 
@@ -27,7 +28,7 @@ public class NetSessionManager {
     }
 
     public void setOperatingMode(int mode) {
-        if (mode < MODE_MASTER_SERVER || mode > MODE_CLIENT_GUEST)
+        if (mode < MODE_MASTER_SERVER || mode > MODE_CLIENT_PRIVATE)
             throw new IllegalArgumentException("Illegal mode: " + mode);
         operatingMode = mode;
     }
