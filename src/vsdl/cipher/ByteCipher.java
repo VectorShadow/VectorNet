@@ -3,6 +3,7 @@ package vsdl.cipher;
 import java.io.Serializable;
 import java.math.BigInteger;
 import java.security.SecureRandom;
+import java.util.Arrays;
 
 public class ByteCipher implements Serializable {
 
@@ -50,9 +51,10 @@ public class ByteCipher implements Serializable {
      */
     public static ByteCipher generate() {
         byte[] key = new byte[KEY_SIZE];
-        for (int i = 0; i < KEY_SIZE; ++i) {
-            key[i] = randomByte();
-        }
+        final SecureRandom SECURE_RANDOM = new SecureRandom();
+        do {
+            SECURE_RANDOM.nextBytes(key);
+        } while(key[0] >> 4 == 0); //BigInteger's string constructor ignores leading 0s, so don't allow them
         return new ByteCipher(key);
     }
 
@@ -80,15 +82,6 @@ public class ByteCipher implements Serializable {
             outputData[i] = shift(inputData[i], shiftDegree, false);
         }
         return outputData;
-    }
-
-    private static byte randomByte() {
-        int b = 0;
-        final SecureRandom SECURE_RANDOM = new SecureRandom();
-        for (int i = 7; i >= 0; --i) {
-            b |= (int)(Math.pow(2, i) * SECURE_RANDOM.nextInt(2));
-        }
-        return (byte)b;
     }
 
     /**
@@ -120,5 +113,10 @@ public class ByteCipher implements Serializable {
         for (int i = 0; i < dataSize; ++i)
             outputData[i] = (byte) (inputData[i] ^ key[i % KEY_SIZE]);
         return outputData;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        return o instanceof ByteCipher && Arrays.equals(KEY, ((ByteCipher) o).KEY);
     }
 }
