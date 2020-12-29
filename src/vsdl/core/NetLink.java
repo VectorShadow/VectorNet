@@ -24,9 +24,13 @@ public class NetLink extends Thread {
     private boolean isOpen = true;
     private int transmissionCount = 0;
 
-    NetLink(int id, String host, int port) throws IOException {
+    NetLink(int id, Socket socket) {
         ID_SELF = id;
-        SOCK = new Socket(host, port);
+        SOCK = socket;
+    }
+
+    NetLink(int id, String host, int port) throws IOException {
+        this(id, new Socket(host, port));
     }
 
     void close() {
