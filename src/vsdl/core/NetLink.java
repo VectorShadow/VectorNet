@@ -134,7 +134,8 @@ public class NetLink extends Thread {
                     throw new TransmissionFailureException("Socket stream was corrupted and is not yet handled.");
                     //todo - notify sender of corruption on transmission <transmissionIndex>, then find the next
                     // transmission by stepping through the stream until we found 4 consecutive bytes that match
-                    // idPartner, then start the stream from there, and set streamCorrupted to false
+                    // idPartner, AND sequence ID is 0 (the start of a new transmission);
+                    // then start the stream from the new header, and set streamCorrupted to false
                 }
             } catch (SocketException se) {
                 NetSessionManager.getTransmissionHandler().handleDisconnection();

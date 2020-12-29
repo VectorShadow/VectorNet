@@ -1,8 +1,8 @@
 package vsdl.core;
 
 public class VNConstants {
-    static final int MAX_TRANSMISSION_PACKETS = 127;
-    static final int MAX_PACKET_DATA = 8192;
+    static final int MAX_TRANSMISSION_PACKETS = 0x7fff; //32767
+    static final int MAX_PACKET_DATA = 1_024;
 
 
     public static final short OPCODE_LINK = 0;
@@ -13,8 +13,8 @@ public class VNConstants {
 
     public static final short OPCODE_USER = 64;
 
-    //sender = 4 + xmit = 4 + seq = 1 + size = 3 => 12
-    static final int PACKET_HEADER_LENGTH = 12;
+    //sender = 4 + xmit = 4 + seq = 2 + size = 3 => 13
+    static final int PACKET_HEADER_LENGTH = 13;
     static final int PACKET_TRAILER_LENGTH = 3; //trailer = 3
 
     static final int PACKET_SIZE = PACKET_HEADER_LENGTH + MAX_PACKET_DATA + PACKET_TRAILER_LENGTH;

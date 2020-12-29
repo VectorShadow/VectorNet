@@ -36,7 +36,7 @@ public class VectorPacket {
         System.arraycopy(to4(packet.SENDER_ID), 0, stream, 0, 4);
         System.arraycopy(to4(packet.XMIT_ID), 0, stream, 4, 4);
         System.arraycopy(to3(packet.PACKET_SIZE), 0, stream, 8, 3);
-        stream[11] = packet.SEQUENCE_ID;
+        System.arraycopy(to2(packet.SEQUENCE_ID), 0, stream, 11, 2);
         for (int i = 0; i < MAX_PACKET_DATA; ++i) {
             stream[i+ PACKET_HEADER_LENGTH] = packet.DATA[i];
         }
@@ -51,7 +51,7 @@ public class VectorPacket {
                 toInt(stream, 0, 4),
                 toInt(stream, 4, 4),
                 toInt(stream, 8, 3),
-                stream[11],
+                (byte)toInt(stream, 11, 2),
                 data
         );
     }
