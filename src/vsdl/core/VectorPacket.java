@@ -1,5 +1,7 @@
 package vsdl.core;
 
+import java.util.Arrays;
+
 import static vsdl.core.ByteUtil.*;
 import static vsdl.core.VNConstants.*;
 
@@ -13,11 +15,11 @@ public class VectorPacket {
     private final int SENDER_ID;
     private final int XMIT_ID;
     private final int PACKET_SIZE;
-    private final byte SEQUENCE_ID;
+    private final short SEQUENCE_ID;
     private final byte[] DATA;
     private final int CHECKSUM;
 
-    VectorPacket(int senderID, int xmitID, int packetSize, byte sequenceID, byte[] data) {
+    VectorPacket(int senderID, int xmitID, int packetSize, short sequenceID, byte[] data) {
         SENDER_ID = senderID;
         XMIT_ID = xmitID;
         PACKET_SIZE = packetSize;
@@ -28,7 +30,7 @@ public class VectorPacket {
             DATA[i] = (i < data.length ? data[i] : PAD);
             sum += DATA[i];
         }
-        CHECKSUM = sum;
+        CHECKSUM = Math.abs(sum);
     }
 
     public static byte[] toStream(VectorPacket packet) {
@@ -51,7 +53,7 @@ public class VectorPacket {
                 toInt(stream, 0, 4),
                 toInt(stream, 4, 4),
                 toInt(stream, 8, 3),
-                (byte)toInt(stream, 11, 2),
+                (short)toInt(stream, 11, 2),
                 data
         );
     }
@@ -78,5 +80,17 @@ public class VectorPacket {
 
     public int getChecksum() {
         return CHECKSUM;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        return
+                o instanceof VectorPacket &&
+                        SENDER_ID == ((VectorPacket) o).SENDER_ID &&
+                        XMIT_ID == ((VectorPacket) o).XMIT_ID &&
+                        PACKET_SIZE == ((VectorPacket) o).PACKET_SIZE &&
+                        SEQUENCE_ID == ((VectorPacket) o).SEQUENCE_ID &&
+                        Arrays.equals(DATA, ((VectorPacket) o).DATA) &&
+                        CHECKSUM == ((VectorPacket) o).CHECKSUM;
     }
 }

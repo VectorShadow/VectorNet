@@ -7,7 +7,7 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.Random;
 
-public class TestByteUtil {
+public class ByteUtilTest {
 
     private static final int VOLUME = 16;
     private static final Random RANDOM = new Random();

@@ -13,8 +13,8 @@ import java.util.Random;
 
 public class SessionHost extends Thread {
 
-    private final int MIN_ID = 0x1000_0000;
-    private final int MAX_ID = 0x7FFF_FFFF;
+    private static final int MIN_ID = 0x1000_0000;
+    private static final int MAX_ID = 0x5FFF_FFFF;
 
     private boolean isOpen = true;
     private final ServerSocket serverSocket;
@@ -22,7 +22,7 @@ public class SessionHost extends Thread {
 
     public SessionHost(int portNumber) throws IOException {
         serverSocket = new ServerSocket(portNumber);
-        linkID = (new Random()).nextInt(MAX_ID) - MIN_ID;
+        linkID = randomInitialLinkID();
     }
 
     public void close() {
@@ -40,6 +40,10 @@ public class SessionHost extends Thread {
                 throw new TransmissionFailureException("Failed to accept connection: " + e.getMessage());
             }
         }
+    }
+
+    static int randomInitialLinkID() {
+        return (new Random()).nextInt(MAX_ID) + MIN_ID;
     }
 
 }
