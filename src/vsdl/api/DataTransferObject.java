@@ -7,7 +7,7 @@ import java.io.*;
 /**
  * Wraps all data sent as packets.
  */
-public class DataTransferObject {
+public class DataTransferObject implements Serializable {
 
     private final Serializable DATA;
     private final short OPCODE;
@@ -67,5 +67,11 @@ public class DataTransferObject {
             }
         }
         return dto;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        return o instanceof DataTransferObject && DATA.equals(((DataTransferObject) o).DATA) &&
+                OPCODE == ((DataTransferObject) o).OPCODE;
     }
 }
